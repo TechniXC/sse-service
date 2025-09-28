@@ -1,0 +1,59 @@
+# ==== OS files ====
+.DS_Store
+Thumbs.db
+
+# ==== IDEs ====
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# ==== Build systems ====
+# Gradle
+.gradle/
+build/
+
+# Maven (if used by tooling or mixed builds)
+target/
+
+# IntelliJ out directory
+out/
+
+# Generic class output (just in case)
+classes/
+
+# ==== Logs & diagnostics ====
+*.log
+logs/
+log/
+hs_err_pid*
+replay_pid*
+heapdump*.hprof
+*.stackdump
+
+# ==== Coverage & reports ====
+coverage/
+.jacoco/
+jacoco.exec
+jacocoTest.exec
+*.lcov
+
+# ==== Environment & secrets ====
+.env
+.env.*
+!.env.example
+
+# ==== Temporary files ====
+tmp/
+temp/
+*.swp
+*.swo
+
+# ==== Gradle Wrapper (keep in VCS) ====
+!gradle/wrapper/gradle-wrapper.jar
+!gradlew
+!gradlew.bat

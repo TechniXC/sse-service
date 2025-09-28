@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    ROOT: INFO
+    org.springframework: INFO
+    org.springframework.web: INFO
+
+sse:
+  timeout: 1h
+
+spring:
+  main:
+    web-application-type: reactive
+    allow-bean-definition-overriding: true
+  application:
+    name: sse-service
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 5000ms
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: user
+    password: password
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v2/api-docs
+  swagger-ui:
+    enabled: true
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://tempo:9411/api/v2/spans
+
