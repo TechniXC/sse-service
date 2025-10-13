@@ -28,13 +28,13 @@ public class EventProcessor {
                         registeredList -> registeredList.forEach(registeredUser -> {
                             try {
                                 var content = objectMapper.writeValueAsString(event);
-                                log.debug("Message for sending: {}", content);
+                                log.info("Message for sending: {}", content);
                                 ssePushService.sendMessage(registeredUser.getQueueId(), content);
                             } catch (JsonProcessingException e) {
-                                log.debug("Bad push message!");
+                                log.warn("Bad push message!");
                             }
                         }),
-                        () -> log.debug("No queue registered for message: {}", event));
+                        () -> log.info("No queue registered for message: {}", event));
     }
 
 }

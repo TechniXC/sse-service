@@ -14,7 +14,7 @@
         </http>
         <format>
             <label>
-                <pattern>application=${appName},hostname=${HOSTNAME},level=%level</pattern>
+                <pattern>application=${appName},service=${appName},hostname=${HOSTNAME},level=%level</pattern>
             </label>
             <message>
                 <pattern>${FILE_LOG_PATTERN}</pattern>

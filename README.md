@@ -5,9 +5,20 @@ It integrates with Redis and RabbitMQ as core infrastructure components and offe
 
 ---
 
-## 🚀 Requirements
+## ⛴️ Running with Docker
 
-To run the project, make sure the following infrastructure is available:
+Run the following command from the root directory of the project:
+
+```docker-compose up --build```
+
+The service itself will be available at `localhost:8080`
+Also, Grafana with a **Drilldown logs** option will be available at `localhost:3000`
+
+---
+
+## 🚀 Running from IDEA
+
+To run the project from IDE or as a .jar make sure the following prerequisites are available:
 
 - **Java**: `>= 17`
 - **Redis**: accessible at `redis:6379` (no password)

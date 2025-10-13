@@ -6,6 +6,8 @@ logging:
     ROOT: INFO
     org.springframework: INFO
     org.springframework.web: INFO
+  pattern:
+    level: "%5p [%X{traceId:-},%X{spanId:-}]"
 
 sse:
   timeout: 1h
@@ -26,6 +28,8 @@ spring:
     port: 5672
     username: user
     password: password
+  reactor:
+    context-propagation: auto
 
 springdoc:
   api-docs:
@@ -35,6 +39,18 @@ springdoc:
     enabled: true
 
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+    baggage:
+      enabled: true
+      correlation:
+        enabled: true
+      remote-fields: traceId,spanId
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      service: ${spring.application.name}
   zipkin:
     tracing:
       endpoint: http://tempo:9411/api/v2/spans

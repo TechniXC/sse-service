@@ -1,0 +1,135 @@
+services:
+  # Redis service
+  redis:
+    image: redis:8.2.2-alpine
+    container_name: sse-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # RabbitMQ service
+  rabbitmq:
+    image: rabbitmq:4.1.4-management-alpine
+    container_name: sse-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Loki for logs
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: sse-loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./loki-runtime.yaml:/etc/loki/runtime.yaml
+      - loki-data:/loki
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Tempo tracing service
+  tempo:
+    image: grafana/tempo:2.3.1
+    container_name: sse-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "9411:9411"
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./tempo-config.yaml:/etc/tempo.yaml
+      - tempo-data:/var/tempo
+    networks:
+      - sse-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:12.2.0
+    container_name: sse-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: http://localhost:3000
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_LOG_LEVEL: info
+      GF_FEATURE_TOGGLES_ENABLE: traceToMetrics,correlations
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - grafana-data:/var/lib/grafana
+    networks:
+      - sse-network
+    depends_on:
+      loki:
+        condition: service_healthy
+      tempo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Application
+  sse-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sse-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_APPLICATION_NAME: sse-service
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+      tempo:
+        condition: service_healthy
+    networks:
+      - sse-network
+    restart: unless-stopped
+
+networks:
+  sse-network:
+    driver: bridge
+
+volumes:
+  tempo-data:
+  loki-data:
+  grafana-data:

@@ -1,0 +1,10 @@
+# Runtime configuration for Loki 3.x
+# This file can be updated without restarting Loki
+
+overrides:
+  # Default tenant (no auth)
+  "fake":
+    ingestion_rate_mb: 10
+    ingestion_burst_size_mb: 20
+    max_query_length: 721h
+    retention_period: 168h
