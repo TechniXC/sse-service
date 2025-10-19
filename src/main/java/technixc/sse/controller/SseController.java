@@ -1,26 +1,24 @@
 package technixc.sse.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import technixc.sse.dto.Event;
-import technixc.sse.service.EventProcessor;
+import technixc.sse.processor.EventProcessor;
 import technixc.sse.service.RegistrationService;
 import technixc.sse.service.SsePushService;
 
 import java.util.UUID;
 
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/webevent")
+@RequestMapping("/api/events")
 public class SseController {
 
-    private final SsePushService userMessageService;
+    private final SsePushService ssePushService;
     private final RegistrationService registrationService;
     private final EventProcessor eventProcessor;
 
@@ -30,7 +28,7 @@ public class SseController {
     public Flux<String> receive(@RequestHeader(name = HEADER_NAME) String userId) {
         var queueId = UUID.randomUUID().toString();
         registrationService.registerUser(userId, queueId);
-        return userMessageService.receiveStream(queueId, userId);
+        return ssePushService.receiveStream(queueId, userId);
     }
 
     @PostMapping(path = "/send-message")

@@ -1,17 +1,17 @@
-package technixc.sse.rabbit;
+package technixc.sse.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.rabbitmq.OutboundMessage;
 import reactor.rabbitmq.QueueSpecification;
 import reactor.rabbitmq.Receiver;
 import reactor.rabbitmq.Sender;
 import technixc.sse.configuration.SSEConfiguration;
 import technixc.sse.repository.RegisteredUsersRedisRepository;
-import technixc.sse.service.SsePushService;
 
 import java.util.concurrent.TimeoutException;
 
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public class RabbitSsePushServiceImpl implements SsePushService {
 
-    private static final String SSE_PUSH_EXCHANGE = "sse-push";
+    private static final String SSE_PUSH_EXCHANGE = "sse-push-";
 
     private final SSEConfiguration sseConfiguration;
     private final RegisteredUsersRedisRepository redisRepository;
@@ -28,7 +28,7 @@ public class RabbitSsePushServiceImpl implements SsePushService {
     private final Receiver receiver;
 
     public void sendMessage(String queueId, String content) {
-        String routingKey = SSE_PUSH_EXCHANGE + "-" + queueId;
+        String routingKey = SSE_PUSH_EXCHANGE + queueId;
 
         OutboundMessage message = new OutboundMessage("", routingKey, content.getBytes());
 
@@ -46,11 +46,11 @@ public class RabbitSsePushServiceImpl implements SsePushService {
 
     public Flux<String> receiveStream(String queueId, String userId) {
         sendMessage(queueId, "queueId:" + queueId);
-        var routingKey = SSE_PUSH_EXCHANGE + "-" + queueId;
+        var routingKey = SSE_PUSH_EXCHANGE + queueId;
 
         return sender.declareQueue(QueueSpecification.queue(routingKey)
                         .exclusive(false)
-                        .autoDelete(true))          // Mono<Queue>
+                        .autoDelete(true))
                 .doOnNext(q -> log.debug("Queue {} declared", routingKey))
                 .thenMany(
                         receiver.consumeAutoAck(routingKey)
@@ -62,6 +62,7 @@ public class RabbitSsePushServiceImpl implements SsePushService {
                 )
                 .timeout(sseConfiguration.getTimeout(),
                         Flux.just("No new messages during 1 hour, closing Streaming"))
+                .publishOn(Schedulers.boundedElastic())
                 .doOnCancel(() -> {
                     log.debug("Streaming cancelling for queueId {}", queueId);
                     redisRepository.findByQueueId(queueId).ifPresent(x -> redisRepository.deleteById(x.getId()));

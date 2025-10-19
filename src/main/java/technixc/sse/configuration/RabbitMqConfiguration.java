@@ -1,4 +1,4 @@
-package technixc.sse.rabbit;
+package technixc.sse.configuration;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;

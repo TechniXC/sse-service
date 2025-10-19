@@ -13,10 +13,8 @@ public class RegisteredUserHash {
 
     @Id
     private String id;
-
     @Indexed
     private String userId;
-
     @Indexed
     private String queueId;
 }

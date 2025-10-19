@@ -1,4 +1,4 @@
-package technixc.sse.service;
+package technixc.sse.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import technixc.sse.dto.Event;
 import technixc.sse.repository.RegisteredUsersRedisRepository;
+import technixc.sse.service.SsePushService;
 
 import java.util.Optional;
 
